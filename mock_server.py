@@ -105,7 +105,10 @@ async def generate_webhook(body: GenerateRequest, request: Request):
     _valid_token = secrets.token_hex(32)
     last_digit = int(body.regNo[-1])
     question = "Q1 (odd)" if last_digit % 2 != 0 else "Q2 (even)"
-    base = str(request.base_url).rstrip("/")
+    # Use forwarded scheme (Railway/Render terminate TLS externally, base_url is http://)
+    scheme = request.headers.get("x-forwarded-proto", request.url.scheme)
+    host = request.headers.get("x-forwarded-host", request.headers.get("host", request.url.netloc))
+    base = f"{scheme}://{host}"
     webhook_url = f"{base}/hiring/testWebhook/PYTHON"
 
     log_event("/generateWebhook/PYTHON", "REQUEST", {"name": body.name, "regNo": body.regNo, "email": body.email})
